@@ -1,0 +1,44 @@
+{% load pliegos_extras %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Pliegos con apertura próxima - Comprar Catamarca</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
+        th { background: #f0f0f0; }
+        .error { color: #a00; }
+    </style>
+</head>
+<body>
+    <h1>Pliegos con apertura próxima</h1>
+
+    {% if error %}
+        <p class="error">No se pudo consultar el servicio: {{ error }}</p>
+    {% elif not results %}
+        <p>No hay resultados.</p>
+    {% else %}
+        <p>{{ results|length }} resultado(s).</p>
+        <table>
+            <thead>
+                <tr>
+                    {% for columna in columnas %}
+                        <th>{{ columna }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in results %}
+                    <tr>
+                        {% for columna in columnas %}
+                            <td>{{ item|get_item:columna }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>
