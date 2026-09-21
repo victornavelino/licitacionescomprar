@@ -18,12 +18,10 @@ def pliegos_proxima_apertura(request):
         results = []
         error = str(exc)
 
-    columnas = list(results[0].keys()) if results else []
-
     return render(
         request,
         "pliegos/lista.html",
-        {"results": results, "columnas": columnas, "error": error},
+        {"results": results, "error": error},
     )
 
 

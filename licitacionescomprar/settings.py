@@ -129,10 +129,10 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# Servicio SOAP "Compr.ar" de Catamarca (Pliegos)
+# Servicio "Compr.ar" de Catamarca (Pliegos)
 # https://comprar.catamarca.gob.ar/API/v1/ServicioPliegoWS.asmx
-PLIEGOS_WSDL_URL = os.environ.get(
-    "PLIEGOS_WSDL_URL",
-    "https://comprar.catamarca.gob.ar/API/v1/ServicioPliegoWS.asmx?WSDL",
+PLIEGOS_SERVICE_URL = os.environ.get(
+    "PLIEGOS_SERVICE_URL",
+    "https://comprar.catamarca.gob.ar/API/v1/ServicioPliegoWS.asmx",
 )
 PLIEGOS_SOAP_TIMEOUT = int(os.environ.get("PLIEGOS_SOAP_TIMEOUT", "30"))

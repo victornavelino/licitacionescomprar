@@ -1,4 +1,3 @@
-{% load pliegos_extras %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,9 +6,10 @@
     <style>
         body { font-family: sans-serif; margin: 2rem; }
         table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
+        th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; vertical-align: top; }
         th { background: #f0f0f0; }
         .error { color: #a00; }
+        ul.actos { margin: 0; padding-left: 1.1rem; }
     </style>
 </head>
 <body>
@@ -24,17 +24,43 @@
         <table>
             <thead>
                 <tr>
-                    {% for columna in columnas %}
-                        <th>{{ columna }}</th>
-                    {% endfor %}
+                    <th>Expediente</th>
+                    <th>Unidad ejecutora</th>
+                    <th>Apertura</th>
+                    <th>Monto</th>
+                    <th>Modalidad</th>
+                    <th>Tipo de selección</th>
+                    <th>Objeto</th>
+                    <th>Actos administrativos</th>
+                    <th>Pliego</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in results %}
                     <tr>
-                        {% for columna in columnas %}
-                            <td>{{ item|get_item:columna }}</td>
-                        {% endfor %}
+                        <td>{{ item.numeroExpediente }}</td>
+                        <td>{{ item.unidadEjecutora }}</td>
+                        <td>{{ item.fechaActoApertura }}</td>
+                        <td>{{ item.montoContratacion }}</td>
+                        <td>{{ item.modalidad }}</td>
+                        <td>{{ item.nombreTipoSeleccionPliego }}</td>
+                        <td>{{ item.objetoContratacion }}</td>
+                        <td>
+                            {% if item.actosAdministrativo %}
+                                <ul class="actos">
+                                    {% for acto in item.actosAdministrativo %}
+                                        <li>{{ acto.documento }}: {{ acto.numeroGDE }}{% if acto.numeroEspecial %} ({{ acto.numeroEspecial }}){% endif %}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.lnkNumeroProceso %}
+                                <a href="{{ item.lnkNumeroProceso }}" target="_blank" rel="noopener">Ver pliego #{{ item.idPliego }}</a>
+                            {% else %}
+                                #{{ item.idPliego }}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
