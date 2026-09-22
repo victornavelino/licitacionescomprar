@@ -31,10 +31,18 @@ SAMPLE_XML = b"""<?xml version="1.0" encoding="utf-8"?>
 
 
 class FindPliegosConAperturaProximaTests(TestCase):
-    @patch("pliegos.services.requests.get")
-    def test_parses_xml_response(self, mock_get):
-        mock_get.return_value = Mock(status_code=200, content=SAMPLE_XML)
-        mock_get.return_value.raise_for_status = Mock()
+    def setUp(self):
+        # La sesión HTTP se cachea a nivel de módulo entre llamadas; se resetea
+        # en cada test para no filtrar mocks/estado entre casos.
+        patcher = patch("pliegos.services._session", None)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    @patch("pliegos.services.requests.Session")
+    def test_parses_xml_response(self, mock_session_cls):
+        mock_session = mock_session_cls.return_value
+        mock_session.get.return_value = Mock(status_code=200, content=SAMPLE_XML)
+        mock_session.get.return_value.raise_for_status = Mock()
 
         results = find_pliegos_con_apertura_proxima()
 
@@ -46,22 +54,40 @@ class FindPliegosConAperturaProximaTests(TestCase):
             results[0]["actosAdministrativo"][0]["documento"], "Autorizacion_llamado"
         )
 
-    @patch("pliegos.services.requests.get")
-    def test_wraps_network_errors(self, mock_get):
+    @patch("pliegos.services.requests.Session")
+    def test_wraps_network_errors(self, mock_session_cls):
         import requests
 
-        mock_get.side_effect = requests.ConnectionError("boom")
+        mock_session = mock_session_cls.return_value
+        mock_session.get.side_effect = requests.ConnectionError("boom")
 
         with self.assertRaises(PliegoServiceError):
             find_pliegos_con_apertura_proxima()
 
-    @patch("pliegos.services.requests.get")
-    def test_wraps_invalid_xml(self, mock_get):
-        mock_get.return_value = Mock(status_code=200, content=b"not xml")
-        mock_get.return_value.raise_for_status = Mock()
+    @patch("pliegos.services.requests.Session")
+    def test_wraps_invalid_xml(self, mock_session_cls):
+        mock_session = mock_session_cls.return_value
+        mock_session.get.return_value = Mock(status_code=200, content=b"not xml")
+        mock_session.get.return_value.raise_for_status = Mock()
 
         with self.assertRaises(PliegoServiceError):
             find_pliegos_con_apertura_proxima()
+
+    @patch("pliegos.services.requests.Session")
+    def test_wraps_http_error_with_response_body(self, mock_session_cls):
+        import requests
+
+        mock_session = mock_session_cls.return_value
+        error_response = Mock(status_code=500, text="Referencia a objeto no establecida")
+        error_response.raise_for_status.side_effect = requests.HTTPError(
+            "500 Server Error", response=error_response
+        )
+        mock_session.get.return_value = error_response
+
+        with self.assertRaises(PliegoServiceError) as ctx:
+            find_pliegos_con_apertura_proxima()
+
+        self.assertIn("Referencia a objeto no establecida", str(ctx.exception))
 
 
 class PliegosViewTests(TestCase):
